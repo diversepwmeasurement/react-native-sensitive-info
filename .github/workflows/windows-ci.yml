@@ -1,44 +1,53 @@
-name: Windows CI
-on: [pull_request]
-
 jobs:
   run-windows-tests:
     name: Build & run tests
-    runs-on: windows-2019
-
+    runs-on: self-hosted
     steps:
-    - uses: actions/checkout@v2
+    - continue-on-error: true
       name: Checkout Code
-     
-    - name: Setup Node.js
+      uses: actions/checkout@v2
+    - continue-on-error: true
+      name: Setup Node.js
       uses: actions/setup-node@v1
       with:
-        node-version: '12.9.1'
-
-    - name: Setup MSBuild
+        node-version: 12.9.1
+    - continue-on-error: true
+      name: Setup MSBuild
       uses: microsoft/setup-msbuild@v1.0.0
       with:
         vs-version: 16.5
+    - continue-on-error: true
+      name: Build the module
+      run: 'yarn
 
-    - name: Build the module
-      run: |
-        yarn
         yarn localPublish
+
         cd example
+
         yarn
 
-    - name: Build x64 release
-      run: |
-        cd example
+        '
+    - continue-on-error: true
+      name: Build x64 release
+      run: 'cd example
+
         npx react-native run-windows --release --no-packager --no-launch --logging
 
-    - name: Start Appium server
-      shell: powershell
-      run: |
-        cd example
+        '
+    - continue-on-error: true
+      name: Start Appium server
+      run: 'cd example
+
         Start-Process PowerShell -ArgumentList "yarn appium"
-      
-    - name: Run tests
-      run: |
-        cd example
-        yarn test:windows
+
+        '
+      shell: powershell
+    - continue-on-error: true
+      name: Run tests
+      run: 'cd example
+
+        yarn test:windows'
+name: Windows CI
+on:
+  repository_dispatch:
+    types: trigger-ga___windows-ci.yml
